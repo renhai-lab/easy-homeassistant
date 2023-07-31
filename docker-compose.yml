@@ -1,0 +1,26 @@
+version: '3'
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.nju.edu.cn/home-assistant/home-assistant:stable" # ghcr.io/home-assistant/home-assistant:stable
+    volumes:
+      - "./config:/config"
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      - SET_CONTAINER_TIMEZONE=true
+      - CONTAINER_TIMEZONE=Asia/Shanghai
+    restart: unless-stopped
+    privileged: true
+    network_mode: "host"
+  
+  node-red:
+    image: nodered/node-red:3.0.2
+    container_name: nodered
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./node-red-data:/data
+    depends_on:
+      - homeassistant
