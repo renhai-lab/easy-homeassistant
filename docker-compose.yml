@@ -6,6 +6,7 @@ services:
     volumes:
       - "./config:/config"
       - "/etc/localtime:/etc/localtime:ro"
+      - "/run/dbus:/run/dbus:ro"
     environment:
       - SET_CONTAINER_TIMEZONE=true
       - CONTAINER_TIMEZONE=Asia/Shanghai

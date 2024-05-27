@@ -18,7 +18,7 @@ sh get-docker.sh --mirror=Aliyun
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json <<-'EOF'
 {
-  "registry-mirrors": ["http://hub-mirror.c.163.com"]
+  "registry-mirrors": ["http://mirrors.ustc.edu.cn"]
 }
 EOF
 sudo systemctl daemon-reload
@@ -47,6 +47,7 @@ services:
     volumes:
       - "./config:/config"
       - "/etc/localtime:/etc/localtime:ro"
+      - "/run/dbus:/run/dbus:ro" # 蓝牙设备需要
     environment:
       - SET_CONTAINER_TIMEZONE=true
       - CONTAINER_TIMEZONE=Asia/Shanghai
@@ -80,6 +81,7 @@ services:
     volumes:
       - "./config:/config"
       - "/etc/localtime:/etc/localtime:ro"
+      - "/run/dbus:/run/dbus:ro"
     environment:
       - SET_CONTAINER_TIMEZONE=true
       - CONTAINER_TIMEZONE=Asia/Shanghai
