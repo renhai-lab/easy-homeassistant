@@ -7,9 +7,13 @@ services:
       - "./config:/config"
       - "/etc/localtime:/etc/localtime:ro"
       - "/run/dbus:/run/dbus:ro"
+      # - "./mymusic:/media/mymusic"  # 挂载本地音乐文件夹
     environment:
       - SET_CONTAINER_TIMEZONE=true
       - CONTAINER_TIMEZONE=Asia/Shanghai
+      # 如果需要使用国内镜像源，可以取消下面两行的注释，并根据需要修改为其他镜像源
+      # - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+      # - PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
     restart: unless-stopped
     privileged: true
     network_mode: "host"
@@ -23,5 +27,6 @@ services:
       - "1880:1880"
     volumes:
       - ./node-red-data:/data
+    restart: unless-stopped
     depends_on:
       - homeassistant

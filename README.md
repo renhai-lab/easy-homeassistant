@@ -15,8 +15,13 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh --mirror=Aliyun
 ```
 
-## 3.（无需）配置镜像源
-目前，中国科学技术大学（USTC）的 Docker 镜像源（https://docker.mirrors.ustc.edu.cn）已经限制为仅供 USTC 校内网络使用，为了稳定，可以选择在 cloudflare Worker 上运行代理，比如 [ciiii/cloudflare-docker-proxy：在 cloudflare Worker 上运行的 docker 注册表代理。 --- ciiiii/cloudflare-docker-proxy: A docker registry proxy run on cloudflare worker.](https://github.com/ciiiii/cloudflare-docker-proxy)。之后将"http://mirrors.ustc.edu.cn"自己替换为自己的域名。
+## 3.（可选）配置镜像源
+目前，国内大部分Docker 镜像源（比如 https://docker.mirrors.ustc.edu.cn）已经无法使用，我们需要使用镜像代理，有两种方案：
+
+1. （更推荐，但更复杂）阿里云容器镜像：使用**[docker-pull-proxy](https://github.com/yaming116/docker-pull-proxy)**等仓库，将docker镜像上传到私有的阿里云容器镜像仓库。
+2. （更简单，不建议用于生产）Cloudflare Worker 上运行代理，比如 [ciiii/cloudflare-docker-proxy](https://github.com/ciiiii/cloudflare-docker-proxy)。
+
+镜像配置：将`/etc/docker/daemon.json`中的 "http://mirrors.ustc.edu.cn"自己替换为自己的域名，此方法全局生效，或者针对单个镜像：将`ghcr.io/home-assistant/home-assistant:stable`修改为 `你的域名/ghcr.io/home-assistant/home-assistant:stable` 
 
 ```bash
 sudo mkdir -p /etc/docker
@@ -46,16 +51,21 @@ nano docker-compose.yml # vim docker-compose.yml
 services:
   homeassistant:
     container_name: homeassistant
-    image: ghcr.io/home-assistant/home-assistant:stable # 中国地区镜像地址：ghcr.nju.edu.cn/home-assistant/home-assistant:stable或者用你自己的域名。
+    image: ghcr.io/home-assistant/home-assistant:stable # 或者用你自己的镜像
     volumes:
       - "./config:/config"
       - "/etc/localtime:/etc/localtime:ro"
       - "/run/dbus:/run/dbus:ro" # 蓝牙设备需要
+      # - "./mymusic:/media/mymusic"  # 挂载本地音乐文件夹
     environment:
       - SET_CONTAINER_TIMEZONE=true
       - CONTAINER_TIMEZONE=Asia/Shanghai
+      # 如果需要使用国内镜像源，可以取消下面两行的注释，并根据需要修改为其他镜像源
+      # - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+      # - PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
     restart: unless-stopped
     privileged: true
+    network_mode: "host"
 ```
 
 ```
@@ -66,17 +76,18 @@ docker compose logs -f # 查看日志 -f 持续监控日志 ctrl + c 可以退�
 
 根据你的设备情况，等待一会就可以访问http://localhost:8123了。
 
-## 高级配置 
+## 更高级的自动化解决方案 
 
 ---
 
 ### node-red的安装和配置
 
-如果需要node-red，也可以选择docker安装，docker-compose.yml新增以下内容：
+homeassistant的自动化已经很强大了，如果需要更高级的解决方案，可以使用哦个 [node-red](https://nodered.org/)，也可以选择docker安装，docker-compose.yml新增以下内容：
 
 ```yaml
 services:
   homeassistant:
+    # 保持原有内容
 
 # 新增以下内容
   node-red:
@@ -88,6 +99,7 @@ services:
       - "1880:1880"
     volumes:
       - ./node-red-data:/data
+    restart: unless-stopped
     depends_on:
       - homeassistant
 ```
@@ -126,3 +138,6 @@ docker compose restart node-red
 ```bash
 node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 8));" your-password-here
 ```
+
+
+
